@@ -20,8 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.softimagines.blockblastbos.data.model.GameMode
@@ -58,14 +62,50 @@ fun GameScreen(
     
     val context = LocalContext.current
     var rewardedAd by remember { mutableStateOf<RewardedAd?>(null) }
+    var interstitialAd by remember { mutableStateOf<InterstitialAd?>(null) }
+    var levelCompletionCount by remember { mutableIntStateOf(0) }
     
+    // Load Reward Ad
     LaunchedEffect(isGameOver) {
         if (isGameOver && canRevive) {
             val adRequest = AdRequest.Builder().build()
-            RewardedAd.load(context, "ca-app-pub-3940256099942544/5224354917", adRequest, object : RewardedAdLoadCallback() {
+            RewardedAd.load(context, "ca-app-pub-5727190842425920/1850632353", adRequest, object : RewardedAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) { rewardedAd = null }
                 override fun onAdLoaded(ad: RewardedAd) { rewardedAd = ad }
             })
+        }
+    }
+
+    // Load Interstitial Ad
+    fun loadInterstitial() {
+        val adRequest = AdRequest.Builder().build()
+        InterstitialAd.load(context, "ca-app-pub-5727190842425920/4309274731", adRequest, object : InterstitialAdLoadCallback() {
+            override fun onAdFailedToLoad(adError: LoadAdError) { interstitialAd = null }
+            override fun onAdLoaded(ad: InterstitialAd) { interstitialAd = ad }
+        })
+    }
+
+    LaunchedEffect(Unit) {
+        loadInterstitial()
+    }
+
+    fun showInterstitial(onAdDismissed: () -> Unit) {
+        if (interstitialAd != null) {
+            interstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    onAdDismissed()
+                    loadInterstitial()
+                }
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    onAdDismissed()
+                    loadInterstitial()
+                }
+            }
+            interstitialAd?.show(context as Activity)
+            interstitialAd = null
+        } else {
+            onAdDismissed()
+            loadInterstitial()
         }
     }
 
@@ -151,6 +191,8 @@ fun GameScreen(
             NextBlocks(shapes = availableShapes, gridCoordinates = gridCoordinates, gridSize = gridState.size, onDragUpdate = { s, p -> viewModel.updateDragPreview(s, p) }, onShapePlaced = { s, p, i -> viewModel.onBlockPlaced(s, p) })
         }
 
+        AdBanner(modifier = Modifier.padding(vertical = 4.dp))
+
         Text(
             text = "team developer by: SoftImagines",
             color = Color.White.copy(alpha = 0.4f),
@@ -177,7 +219,21 @@ fun GameScreen(
             onDismissRequest = { },
             title = { Text("🎉 Level Selesai!") },
             text = { Text("Kamu berhasil! Lanjut ke tantangan berikutnya?") },
-            confirmButton = { Button(onClick = { viewModel.nextLevel() }) { Text("Lanjut ke Level ${currentLevelIndex + 2}") } }
+            confirmButton = {
+                Button(onClick = {
+                    levelCompletionCount++
+                    // Show interstitial every 2 levels to avoid being too annoying
+                    if (levelCompletionCount % 2 == 0) {
+                        showInterstitial {
+                            viewModel.nextLevel()
+                        }
+                    } else {
+                        viewModel.nextLevel()
+                    }
+                }) {
+                    Text("Lanjut ke Level ${currentLevelIndex + 2}")
+                }
+            }
         )
     }
 
