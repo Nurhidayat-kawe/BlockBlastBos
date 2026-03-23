@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.ads.MobileAds
+import com.softimagines.blockblastbos.ui.game.AboutPrivacyScreen
 import com.softimagines.blockblastbos.ui.game.GameScreen
 import com.softimagines.blockblastbos.ui.game.MainMenu
 import com.softimagines.blockblastbos.ui.theme.BlockBlastTheme
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
                     val viewModel: GameViewModel = viewModel()
                     var currentScreen by remember { mutableStateOf("menu") }
 
-                    BackHandler(enabled = currentScreen == "game") {
+                    BackHandler(enabled = currentScreen != "menu") {
                         currentScreen = "menu"
                     }
 
@@ -43,13 +44,19 @@ class MainActivity : ComponentActivity() {
                                 onStartGame = { mode ->
                                     viewModel.setGameMode(mode)
                                     currentScreen = "game"
-                                }
+                                },
+                                onAboutClick = { currentScreen = "about" }
                             )
                         }
                         "game" -> {
                             GameScreen(
                                 viewModel = viewModel,
                                 onBackToMenu = { currentScreen = "menu" }
+                            )
+                        }
+                        "about" -> {
+                            AboutPrivacyScreen(
+                                onBack = { currentScreen = "menu" }
                             )
                         }
                     }

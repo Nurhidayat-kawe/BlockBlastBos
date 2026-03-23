@@ -148,10 +148,18 @@ fun GameScreen(
 
         // 6. Next Area
         Box(modifier = Modifier.fillMaxWidth().height(110.dp).background(Color.Black.copy(alpha = 0.2f), shape = MaterialTheme.shapes.medium), contentAlignment = Alignment.Center) {
-            NextBlocks(shapes = availableShapes, gridCoordinates = gridCoordinates, gridSize = gridState.size, onDragUpdate = { s, p -> viewModel.updateDragPreview(s, p) }, onShapePlaced = { s, p, i -> viewModel.onBlockPlaced(s, p, i) })
+            NextBlocks(shapes = availableShapes, gridCoordinates = gridCoordinates, gridSize = gridState.size, onDragUpdate = { s, p -> viewModel.updateDragPreview(s, p) }, onShapePlaced = { s, p, i -> viewModel.onBlockPlaced(s, p) })
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "team developer by: SoftImagines",
+            color = Color.White.copy(alpha = 0.4f),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
     }
 
     // --- Overlays ---

@@ -1,6 +1,7 @@
 package com.softimagines.blockblastbos.ui.game
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -20,7 +21,8 @@ import com.softimagines.blockblastbos.viewmodel.GameViewModel
 @Composable
 fun MainMenu(
     viewModel: GameViewModel,
-    onStartGame: (GameMode) -> Unit
+    onStartGame: (GameMode) -> Unit,
+    onAboutClick: () -> Unit
 ) {
     val highScore by viewModel.highScore.collectAsState()
     val coins by viewModel.coins.collectAsState()
@@ -77,6 +79,17 @@ fun MainMenu(
             MenuButton("TIME ATTACK", Color(0xFF2196F3)) { onStartGame(GameMode.TIME_ATTACK) }
             MenuButton("ZEN MODE", Color(0xFF9C27B0)) { onStartGame(GameMode.ZEN) }
             MenuButton("PUZZLE LEVELS", Color(0xFFFF9800)) { onStartGame(GameMode.PUZZLE) }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = "About & Privacy Policy",
+                color = Color.White.copy(alpha = 0.5f),
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .clickable { onAboutClick() }
+                    .padding(8.dp)
+            )
         }
     }
 }
